@@ -2,7 +2,7 @@ const STATES = ['applied', 'phone_screen', 'technical', 'onsite', 'offer', 'hire
 
 // Any offer can go to the next stage or rejected stage
 // hired and rejected are terminal conditions nothing should transition out of them
-const legalTransitions = {
+export const legalTransitions = {
     'applied': ['phone_screen', 'rejected'],
     'phone_screen': ['technical', 'rejected'],
     'technical': ['onsite', 'rejected'],
@@ -27,11 +27,12 @@ export function canTransition(currentStage, targetStage) {
     return legalTransitions[currentStage].includes(targetStage)
 }
 
-console.log(canTransition('applied', 'phone_screen')) // should be true
-console.log(canTransition('applied', 'rejected')) // should be true
-console.log(canTransition('applied', 'offer')) // should be false
-console.log(canTransition('technical', 'offer')) // false
-console.log(canTransition('onsite', 'offer')) // true
-console.log(canTransition('applied', 'onsite')) // false
-console.log(canTransition('hired', 'applied'))  // should be false — the crash case from before
-console.log(canTransition('applied', 'bogus'))  // should be false — typo/invalid stage
+// TESTING
+// console.log(canTransition('applied', 'phone_screen')) // should be true
+// console.log(canTransition('applied', 'rejected')) // should be true
+// console.log(canTransition('applied', 'offer')) // should be false
+// console.log(canTransition('technical', 'offer')) // false
+// console.log(canTransition('onsite', 'offer')) // true
+// console.log(canTransition('applied', 'onsite')) // false
+// console.log(canTransition('hired', 'applied'))  // should be false — the crash case from before
+// console.log(canTransition('applied', 'bogus'))  // should be false — typo/invalid stage
