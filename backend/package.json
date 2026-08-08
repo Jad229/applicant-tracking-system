@@ -13,9 +13,17 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/Jad229/applicant-tracking-system/issues"
   },
-  "homepage": "https://github.com/Jad229/applicant-tracking-system#readme"
+  "homepage": "https://github.com/Jad229/applicant-tracking-system#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
 }
