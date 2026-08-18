@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import move from "./move.js";
+import { query } from "./db.js";
 
 const app = express();
 
@@ -35,4 +36,18 @@ app.post("/applications/:id/move", async (req, res) => {
   }
 });
 
+app.get("/jobs/:jobId/board", async (req, res) => {
+  const { jobId } = req.params;
+
+  const boardResult = await query(
+    `SELECT * FROM stages 
+    JOIN applications ON stages.job_id = applications.job_id 
+    WHERE stages.job_id = $1`,
+    [jobId],
+  );
+
+  const stagesAndApplications = boardResult;
+
+  res.json(stagesAndApplications);
+});
 export default app;
