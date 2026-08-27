@@ -37,18 +37,21 @@ app.post("/applications/:id/move", async (req, res) => {
 });
 
 app.get("/jobs/:jobId/board", async (req, res) => {
+  // Grab jobId from query params
   const { jobId } = req.params;
 
   try {
+    // query job from database
     const jobResult = await query(`SELECT id, title FROM jobs WHERE id = $1`, [
       jobId,
     ]);
 
+    // throw not found if job doesn't exist
     if (jobResult.rows.length === 0) {
       return res.status(404).json({ error: "Job not found" });
     }
 
-    // Two queries (not a query per stage). SQL returns flat rows;
+    // Two queries. SQL returns flat rows;
     // we nest applications under each stage in JavaScript.
     const stagesResult = await query(
       `SELECT * FROM stages WHERE job_id = $1 ORDER BY position`,
@@ -72,10 +75,13 @@ app.get("/jobs/:jobId/board", async (req, res) => {
     );
     const applications = appsResult.rows;
 
+    // Creating the board state object to be returned
+    // Map over stage and filter the applications currently at that stage
     const board = stages.map((stage) => {
       const stageApplications = applications.filter(
         (app) => app.stage_id === stage.id,
       );
+      // return the columns of that stage + the applications currently at that stage.
       return { ...stage, applications: stageApplications };
     });
 
