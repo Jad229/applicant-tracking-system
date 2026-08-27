@@ -39,15 +39,53 @@ app.post("/applications/:id/move", async (req, res) => {
 app.get("/jobs/:jobId/board", async (req, res) => {
   const { jobId } = req.params;
 
-  const boardResult = await query(
-    `SELECT * FROM stages 
-    JOIN applications ON stages.job_id = applications.job_id 
-    WHERE stages.job_id = $1`,
-    [jobId],
-  );
+  try {
+    const jobResult = await query(`SELECT id, title FROM jobs WHERE id = $1`, [
+      jobId,
+    ]);
 
-  const stagesAndApplications = boardResult;
+    if (jobResult.rows.length === 0) {
+      return res.status(404).json({ error: "Job not found" });
+    }
 
-  res.json(stagesAndApplications);
+    // Two queries (not a query per stage). SQL returns flat rows;
+    // we nest applications under each stage in JavaScript.
+    const stagesResult = await query(
+      `SELECT * FROM stages WHERE job_id = $1 ORDER BY position`,
+      [jobId],
+    );
+    const stages = stagesResult.rows;
+
+    const appsResult = await query(
+      `SELECT
+        applications.id,
+        applications.job_id,
+        applications.candidate_id,
+        applications.stage_id,
+        applications.created_at,
+        candidates.name,
+        candidates.email
+      FROM applications
+      JOIN candidates ON applications.candidate_id = candidates.id
+      WHERE applications.job_id = $1`,
+      [jobId],
+    );
+    const applications = appsResult.rows;
+
+    const board = stages.map((stage) => {
+      const stageApplications = applications.filter(
+        (app) => app.stage_id === stage.id,
+      );
+      return { ...stage, applications: stageApplications };
+    });
+
+    res.status(200).json({
+      job: jobResult.rows[0],
+      stages: board,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Something went wrong" });
+  }
 });
 export default app;
