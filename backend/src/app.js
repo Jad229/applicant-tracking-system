@@ -10,23 +10,24 @@ app.use(express.json());
 
 app.post("/applications/:id/move", async (req, res) => {
   const { id } = req.params;
-  const { targetStageName } = req.body;
+  const { targetStageId } = req.body;
 
-  // Validate the target stage name
-  if (!targetStageName) {
-    return res.status(400).json({ error: "Target stage name is required" });
+  // Validate the target stage id
+  if (!targetStageId) {
+    return res.status(400).json({ error: "Target stage id is required" });
   }
 
   // Move.js throws an error if the target stage is invalid
   // We catch the error and return a 409 status code
   try {
     // Move the application to the target stage
-    const updatedApplication = await move(id, targetStageName);
+    const updatedApplication = await move(id, targetStageId);
     res.status(200).json(updatedApplication);
   } catch (error) {
     if (error.message === "Invalid target stage") {
       return res.status(409).json({
         error: "Invalid target stage: illegal application stage transition.",
+        allowedStages: error.allowedStages,
       });
     }
     if (error.message === "Application not found") {
@@ -52,7 +53,7 @@ app.get("/jobs/:jobId/board", async (req, res) => {
     }
 
     // Two queries. SQL returns flat rows;
-    // we nest applications under each stage in JavaScript.
+    // we nest applications under each stage here
     const stagesResult = await query(
       `SELECT * FROM stages WHERE job_id = $1 ORDER BY position`,
       [jobId],
