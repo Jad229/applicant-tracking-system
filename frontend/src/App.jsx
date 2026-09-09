@@ -201,8 +201,8 @@ export default function App() {
   }
 
   // dnd-kit calls this when I let go of a card.
-  // I don't move anything here myself — I just figure out *who* was dropped
-  // *where*, then hand that off to handleMove (same path as the dropdown).
+  // I don't move anything here myself I just figure out "who" was dropped "where"
+  // then hand that off to handleMove.
   function handleDragEnd(event) {
     // Escape key, or dnd-kit aborted the drag — I should not POST a move.
     if (event.canceled) return;
@@ -213,7 +213,7 @@ export default function App() {
     // at 1 in Postgres, and dnd-kit needs every id to be unique.
     const { source, target } = event.operation;
 
-    // Dropped in the gutter / off the board — no column, so nothing to do.
+    // Dropped in the gutter / off the board no column, so nothing to do.
     if (!source || !target) return;
 
     // Strip "app-" so I have a number I can match against applications.id
@@ -226,7 +226,7 @@ export default function App() {
 
     const targetStageId = Number(targetId.replace(/^stage-/, ""));
 
-    // The board is nested: stages → applications. flatMap smashes that into
+    // The board is nested: stages -> applications. flatMap turns that into
     // one list of cards so I can find the one I dragged. I need the whole
     // object (name, current stage_id), not just the id — handleMove uses it.
     const application = board.stages
@@ -238,7 +238,7 @@ export default function App() {
     // Dropped on the same column I started in — not a move, skip the API.
     if (application.stage_id === targetStageId) return;
 
-    // Same function the Move button calls. Legal → refetch. 409 → bounce.
+    // Same function the Move button calls. Legal -> refetch. 409 -> bounce.
     handleMove(application, targetStageId);
   }
 
