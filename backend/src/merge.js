@@ -46,6 +46,7 @@ export default async function merge(loserId, winnerId) {
       `,
       [loserId],
     );
+
     const winnerAppsResult = await connection.query(
       `
       SELECT applications.id, applications.job_id, applications.stage_id, stages.position
@@ -60,7 +61,9 @@ export default async function merge(loserId, winnerId) {
     const winnerApps = winnerAppsResult.rows;
 
     for (const loserApp of loserApps) {
-      const winnerApp = winnerApps.find((app) => app.job_id === loserApp.job_id);
+      const winnerApp = winnerApps.find(
+        (app) => app.job_id === loserApp.job_id,
+      );
 
       if (!winnerApp) {
         // Winner never applied to this job — move the application over

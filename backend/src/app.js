@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import move from "./move.js";
+import merge from "./merge.js";
 import { query } from "./db.js";
 
 const app = express();
@@ -32,6 +33,35 @@ app.post("/applications/:id/move", async (req, res) => {
     }
     if (error.message === "Application not found") {
       return res.status(404).json({ error: "Application not found" });
+    }
+    return res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+app.post("/candidates/:winnerId/merge", async (req, res) => {
+  const { winnerId } = req.params;
+  const { loserId } = req.body;
+
+  if (!loserId) {
+    return res.status(400).json({ error: "Loser id is required" });
+  }
+
+  try {
+    const mergedLoser = await merge(loserId, winnerId);
+    res.status(200).json(mergedLoser);
+  } catch (error) {
+    if (
+      error.message === "Loser candidate not found" ||
+      error.message === "Winner candidate not found"
+    ) {
+      return res.status(404).json({ error: error.message });
+    }
+    if (
+      error.message === "Cannot merge a candidate into themselves" ||
+      error.message === "Loser candidate is already merged" ||
+      error.message === "Winner candidate is already merged"
+    ) {
+      return res.status(409).json({ error: error.message });
     }
     return res.status(500).json({ error: "Something went wrong" });
   }
@@ -71,7 +101,8 @@ app.get("/jobs/:jobId/board", async (req, res) => {
         candidates.email
       FROM applications
       JOIN candidates ON applications.candidate_id = candidates.id
-      WHERE applications.job_id = $1`,
+      WHERE applications.job_id = $1 
+      AND candidates.merged_into_id IS NULL`,
       [jobId],
     );
     const applications = appsResult.rows;
