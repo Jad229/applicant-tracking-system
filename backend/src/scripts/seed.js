@@ -54,18 +54,25 @@ async function seed() {
     }
   }
 
-  // Insert the candidates into the candidates table
-  const candidateResult = await query(
-    `INSERT INTO candidates (name, email) VALUES ($1, $2) RETURNING id`,
-    ["John Doe", "john.doe@example.com"],
-  );
-  const candidateId = candidateResult.rows[0].id;
+  // A few people on the board, including two Jane Does (same person, two records)
+  const people = [
+    { name: "John Doe", email: "john.doe@example.com", stage: "applied" },
+    { name: "Jane Doe", email: "jane@gmail.com", stage: "applied" },
+    { name: "Jane Doe", email: "jane.doe@gmail.com", stage: "phone_screen" },
+    { name: "Sam Rivera", email: "sam.rivera@example.com", stage: "technical" },
+    { name: "Alex Chen", email: "alex.chen@example.com", stage: "onsite" },
+  ];
 
-  // Insert the applications into the applications table
-  const applicationResult = await query(
-    `INSERT INTO applications (candidate_id, job_id, stage_id) VALUES ($1, $2, $3)`,
-    [candidateId, jobId, stageIds.applied],
-  );
+  for (const person of people) {
+    const candidateResult = await query(
+      `INSERT INTO candidates (name, email) VALUES ($1, $2) RETURNING id`,
+      [person.name, person.email],
+    );
+    await query(
+      `INSERT INTO applications (candidate_id, job_id, stage_id) VALUES ($1, $2, $3)`,
+      [candidateResult.rows[0].id, jobId, stageIds[person.stage]],
+    );
+  }
 
   console.log("Seed complete");
 }

@@ -67,6 +67,17 @@ app.post("/candidates/:winnerId/merge", async (req, res) => {
   }
 });
 
+// Newest first so the frontend opens the job we just seeded
+app.get("/jobs", async (req, res) => {
+  try {
+    const result = await query(`SELECT id, title FROM jobs ORDER BY id DESC`);
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
 app.get("/jobs/:jobId/board", async (req, res) => {
   // Grab jobId from query params
   const { jobId } = req.params;
@@ -91,6 +102,7 @@ app.get("/jobs/:jobId/board", async (req, res) => {
     const stages = stagesResult.rows;
 
     const appsResult = await query(
+      // merged_into_id IS NULL hides losers on the board without DELETE'ing them
       `SELECT
         applications.id,
         applications.job_id,

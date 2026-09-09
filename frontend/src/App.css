@@ -1,0 +1,204 @@
+.page {
+  padding: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+h1 {
+  margin: 4px 0 0;
+  font-size: 28px;
+  font-weight: 650;
+}
+
+.job-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+select,
+button {
+  font: inherit;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  padding: 8px 10px;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+button.primary {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #fff;
+}
+
+.banner {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+}
+
+.banner.error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.banner.success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.hint {
+  margin: 0;
+  color: #4b5563;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(200px, 1fr));
+  gap: 12px;
+  overflow-x: auto;
+  align-items: start;
+}
+
+.column {
+  background: #e5e7eb;
+  border-radius: 12px;
+  padding: 10px;
+  min-height: 280px;
+}
+
+.column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.column-header h2 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.column-header span {
+  background: #fff;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: 2px solid transparent;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.card.selectable {
+  cursor: pointer;
+}
+
+.card.winner {
+  border-color: #16a34a;
+}
+
+.card.loser {
+  border-color: #dc2626;
+}
+
+/* Shake in place when the API rejects a move (409). The card never left the column. */
+.card.bounce {
+  animation: bounce 0.45s ease;
+}
+
+.name {
+  margin: 0;
+  font-weight: 650;
+}
+
+.email {
+  margin: 4px 0 10px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.tag {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.tag.keep {
+  color: #166534;
+}
+
+.tag.hide {
+  color: #991b1b;
+}
+
+.move-form {
+  display: flex;
+  gap: 6px;
+}
+
+.move-form select {
+  flex: 1;
+  min-width: 0;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-8px);
+  }
+  40%,
+  80% {
+    transform: translateX(8px);
+  }
+}
+
+@media (max-width: 1100px) {
+  .board {
+    grid-template-columns: repeat(7, 220px);
+  }
+}
