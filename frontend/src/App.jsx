@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { DragDropProvider, useDraggable, useDroppable } from '@dnd-kit/react';
 import {
   fetchBoard,
   fetchJobs,
@@ -51,6 +52,7 @@ export default function App() {
   const [winner, setWinner] = useState(null); // card we keep
   const [loser, setLoser] = useState(null); // card we hide
   const [busy, setBusy] = useState(false); // disable clicks while a request is in progress
+
 
   // On first load, get the job list and open the newest one (seed inserts a new job each run)
   useEffect(() => {
@@ -198,6 +200,65 @@ export default function App() {
     );
   }
 
+  // @dnd-kit/react (not the old @dnd-kit/core):
+  //   source = the card you picked up  (we set id to "app-12")
+  //   target = the column you dropped on (we set id to "stage-8")
+  // Escape or a drop outside a column → canceled / no target → do nothing.
+  function handleDragEnd(event) {
+    if (event.canceled) return;
+
+    const { source, target } = event.operation;
+    if (!source || !target) return;
+
+    const applicationId = Number(String(source.id).replace(/^app-/, ""));
+    const targetId = String(target.id);
+    if (!targetId.startsWith("stage-")) return;
+
+    const targetStageId = Number(targetId.replace(/^stage-/, ""));
+
+    const application = board.stages
+      .flatMap((column) => column.applications)
+      .find((app) => app.id === applicationId);
+
+    if (!application) return;
+    if (application.stage_id === targetStageId) return;
+
+    handleMove(application, targetStageId);
+  }
+
+  function StageColumn({ stage }) {
+    const { ref } = useDroppable({
+      id: `stage-${stage.id}`,
+    });
+
+    return (
+      <article ref={ref} key={stage.id} className="column">
+        <header className="column-header">
+          <h2>{formatStageName(stage.name)}</h2>
+          <span>{stage.applications.length}</span>
+        </header>
+        {stage.applications.map((application) => (
+          <CandidateCard
+            key={application.id}
+            application={application}
+            stages={board.stages}
+            mergeMode={mergeMode}
+            isWinner={
+              winner && winner.candidate_id === application.candidate_id
+            }
+            isLoser={loser && loser.candidate_id === application.candidate_id}
+            bouncing={bouncingId === application.id}
+            busy={busy}
+            onClick={() => handleCardClick(application)}
+            onMove={(targetStageId) =>
+              handleMove(application, targetStageId)
+            }
+          />
+        ))}
+
+      </article>
+    )
+  }
   return (
     <main className="page">
       <header className="topbar">
@@ -249,37 +310,19 @@ export default function App() {
       </section>
 
       {/* Columns are whatever stages the API returned for this job */}
-      <section className="board">
-        {board.stages.map((stage) => (
-          <article key={stage.id} className="column">
-            <header className="column-header">
-              <h2>{formatStageName(stage.name)}</h2>
-              <span>{stage.applications.length}</span>
-            </header>
-            {stage.applications.map((application) => (
-              <CandidateCard
-                key={application.id}
-                application={application}
-                stages={board.stages}
-                mergeMode={mergeMode}
-                isWinner={
-                  winner && winner.candidate_id === application.candidate_id
-                }
-                isLoser={loser && loser.candidate_id === application.candidate_id}
-                bouncing={bouncingId === application.id}
-                busy={busy}
-                onClick={() => handleCardClick(application)}
-                onMove={(targetStageId) =>
-                  handleMove(application, targetStageId)
-                }
-              />
-            ))}
-          </article>
-        ))}
-      </section>
+      <DragDropProvider
+        onDragEnd={handleDragEnd}
+      >
+        <section className="board">
+          {board.stages.map((stage) => (
+            <StageColumn key={stage.id} stage={stage} />
+          ))}
+        </section>
+      </DragDropProvider>
     </main>
   );
 }
+
 
 function CandidateCard({
   application,
@@ -293,7 +336,10 @@ function CandidateCard({
   onMove,
 }) {
   const [targetStageId, setTargetStageId] = useState("");
-
+  const { ref } = useDraggable({
+    id: `app-${application.id}`,
+    disabled: mergeMode,
+  });
   // Include illegal targets on purpose so I can demo the 409 bounce
   const otherStages = stages.filter((stage) => stage.id !== application.stage_id);
 
@@ -312,14 +358,17 @@ function CandidateCard({
   }
 
   return (
-    <div className={cardClass} onClick={onClick}>
+    <div ref={ref} className={cardClass} onClick={onClick}>
       <p className="name">{application.name}</p>
       <p className="email">{application.email}</p>
       {isWinner && <p className="tag keep">Keep</p>}
       {isLoser && <p className="tag hide">Hide</p>}
       {/* Hide the move dropdown while picking a merge pair */}
       {!mergeMode && (
-        <div className="move-form">
+        <div
+          className="move-form"
+          onPointerDown={(event) => event.stopPropagation()}
+        >
           <select
             value={targetStageId}
             disabled={busy}

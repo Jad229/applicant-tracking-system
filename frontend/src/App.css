@@ -128,6 +128,7 @@ button.primary {
   margin-bottom: 10px;
   border: 2px solid transparent;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  cursor: grab;
 }
 
 .card.selectable {
