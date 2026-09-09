@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS candidates (
     id SERIAL PRIMARY KEY,
     name text NOT NULL,
     email text NOT NULL,
+    merged_into_id int REFERENCES candidates(id),
     created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
