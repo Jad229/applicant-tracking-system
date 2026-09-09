@@ -200,29 +200,45 @@ export default function App() {
     );
   }
 
-  // @dnd-kit/react (not the old @dnd-kit/core):
-  //   source = the card you picked up  (we set id to "app-12")
-  //   target = the column you dropped on (we set id to "stage-8")
-  // Escape or a drop outside a column → canceled / no target → do nothing.
+  // dnd-kit calls this when I let go of a card.
+  // I don't move anything here myself — I just figure out *who* was dropped
+  // *where*, then hand that off to handleMove (same path as the dropdown).
   function handleDragEnd(event) {
+    // Escape key, or dnd-kit aborted the drag — I should not POST a move.
     if (event.canceled) return;
 
+    // source = the card I picked up (id looks like "app-12")
+    // target = the column I dropped on (id looks like "stage-8")
+    // I prefixed those ids because applications.id and stages.id both start
+    // at 1 in Postgres, and dnd-kit needs every id to be unique.
     const { source, target } = event.operation;
+
+    // Dropped in the gutter / off the board — no column, so nothing to do.
     if (!source || !target) return;
 
+    // Strip "app-" so I have a number I can match against applications.id
     const applicationId = Number(String(source.id).replace(/^app-/, ""));
     const targetId = String(target.id);
+
+    // I only treat columns as drop targets. If I somehow landed on another
+    // card, I'm not going to guess a stage.
     if (!targetId.startsWith("stage-")) return;
 
     const targetStageId = Number(targetId.replace(/^stage-/, ""));
 
+    // The board is nested: stages → applications. flatMap smashes that into
+    // one list of cards so I can find the one I dragged. I need the whole
+    // object (name, current stage_id), not just the id — handleMove uses it.
     const application = board.stages
       .flatMap((column) => column.applications)
       .find((app) => app.id === applicationId);
 
     if (!application) return;
+
+    // Dropped on the same column I started in — not a move, skip the API.
     if (application.stage_id === targetStageId) return;
 
+    // Same function the Move button calls. Legal → refetch. 409 → bounce.
     handleMove(application, targetStageId);
   }
 
